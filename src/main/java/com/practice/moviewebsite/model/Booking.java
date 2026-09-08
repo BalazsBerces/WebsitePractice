@@ -8,16 +8,19 @@ public class Booking {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String customerName;
+    private int ticketCount;
 
     @ManyToOne
     private Screening screening;
 
     protected Booking(){}
 
-    public Booking(String customerName, Screening screening){
+    public Booking(String customerName, Screening screening, int ticketCount){
         this.customerName = customerName;
         this.screening = screening;
+        this.ticketCount = ticketCount;
     }
 
     public Long getId() {
@@ -42,5 +45,13 @@ public class Booking {
 
     public void setScreening(Screening screening) {
         this.screening = screening;
+    }
+
+    public int getTicketCount() {
+        return ticketCount;
+    }
+
+    public void setTicketCount(int ticketCount) {
+        this.ticketCount = ticketCount;
     }
 }
