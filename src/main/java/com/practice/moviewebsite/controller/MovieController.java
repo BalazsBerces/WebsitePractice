@@ -19,7 +19,7 @@ public class MovieController {
 
     @GetMapping("/movies")
     public List<Movie> getMovies(){
-        return movieService.getMovies();
+        return movieService.getAllMovies();
     }
 
     @GetMapping("/movies/{id}")
