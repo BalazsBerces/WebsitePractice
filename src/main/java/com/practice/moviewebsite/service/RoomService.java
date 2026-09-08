@@ -1,5 +1,6 @@
 package com.practice.moviewebsite.service;
 
+import com.practice.moviewebsite.exception.ResourceNotFoundException;
 import com.practice.moviewebsite.model.Room;
 import com.practice.moviewebsite.repository.RoomRepository;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,7 @@ public class RoomService {
     }
 
     public Room getRoomById(Long id){
-        return roomRepository.findById(id).orElse(null);
+        return roomRepository.findById(id).orElseThrow(() ->new ResourceNotFoundException("Room", id));
     }
 
     public Room addRoom(Room room){
@@ -29,11 +30,8 @@ public class RoomService {
 
     public Room updateRoom(Long id, Room updatedRoom){
 
-        Room room = roomRepository.findById(id).orElse(null);
+        Room room = roomRepository.findById(id).orElseThrow( ()-> new ResourceNotFoundException("Room", id));
 
-        if(room == null){
-            return null;
-        }
 
         room.setName(updatedRoom.getName());
         room.setCapacity(updatedRoom.getCapacity());
@@ -42,7 +40,7 @@ public class RoomService {
     }
 
     public Room deleteRoom(Long id){
-        Room room = roomRepository.findById(id).orElse(null);
+        Room room = roomRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Room", id));
         if(room == null){
             return null;
         }
