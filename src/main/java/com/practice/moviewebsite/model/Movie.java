@@ -16,9 +16,7 @@ public class Movie {
     @NotBlank
     private String title;
 
-    public Movie(){
-
-    }
+    protected Movie(){}
 
     public Movie(String title){
         this.title = title;
