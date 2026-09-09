@@ -261,7 +261,7 @@ function App() {
       <div className="app">
         <header>
           <h1>Movie Cinema</h1>
-          <p>Spring Boot + React</p>
+
         </header>
 
         <nav>
