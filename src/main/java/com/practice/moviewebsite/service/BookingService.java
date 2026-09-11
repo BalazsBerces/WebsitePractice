@@ -1,6 +1,8 @@
 package com.practice.moviewebsite.service;
 
 import com.practice.moviewebsite.dto.BookingRequest;
+import com.practice.moviewebsite.exception.NotEnoughSeatsException;
+import com.practice.moviewebsite.exception.ResourceNotFoundException;
 import com.practice.moviewebsite.model.Booking;
 import com.practice.moviewebsite.model.Screening;
 import com.practice.moviewebsite.repository.BookingRepository;
@@ -31,11 +33,8 @@ public class BookingService {
 
         Screening screening = screeningRepository
                 .findById(request.getScreeningId())
-                .orElse(null);
+                .orElseThrow(() -> new ResourceNotFoundException(("Screening"), request.getScreeningId()));
 
-        if (screening == null) {
-            return null;
-        }
 
         int capacity = screening.getRoom().getCapacity();
 
@@ -49,7 +48,7 @@ public class BookingService {
         }
 
         if (alreadyBooked + request.getTicketCount() > capacity) {
-            return null;
+            throw new NotEnoughSeatsException(request.getTicketCount(), capacity - alreadyBooked);
         }
 
         Booking booking = new Booking(
