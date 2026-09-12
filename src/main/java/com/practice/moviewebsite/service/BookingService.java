@@ -59,4 +59,45 @@ public class BookingService {
 
         return bookingRepository.save(booking);
     }
+
+    public Booking updateBooking(Long id, BookingRequest request) {
+
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", id));
+
+        Screening screening = screeningRepository
+                .findById(request.getScreeningId())
+                .orElseThrow(() -> new ResourceNotFoundException("Screening", request.getScreeningId()));
+
+        int capacity = screening.getRoom().getCapacity();
+
+        List<Booking> bookings =
+                bookingRepository.findByScreeningId(screening.getId());
+
+        int alreadyBooked = 0;
+
+        for (Booking existing : bookings) {
+            if (!existing.getId().equals(id)) {
+                alreadyBooked += existing.getTicketCount();
+            }
+        }
+
+        if (alreadyBooked + request.getTicketCount() > capacity) {
+            throw new NotEnoughSeatsException(request.getTicketCount(), capacity - alreadyBooked);
+        }
+
+        booking.setCustomerName(request.getCustomerName());
+        booking.setScreening(screening);
+        booking.setTicketCount(request.getTicketCount());
+
+        return bookingRepository.save(booking);
+    }
+
+    public Booking deleteBooking(Long id) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", id));
+
+        bookingRepository.delete(booking);
+        return booking;
+    }
 }

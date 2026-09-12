@@ -28,4 +28,17 @@ public class BookingController {
     ) {
         return bookingService.addBooking(request);
     }
+
+    @PutMapping("/{id}")
+    public Booking updateBooking(
+            @PathVariable Long id,
+            @RequestBody BookingRequest request
+    ) {
+        return bookingService.updateBooking(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    public Booking deleteBooking(@PathVariable Long id) {
+        return bookingService.deleteBooking(id);
+    }
 }

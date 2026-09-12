@@ -38,6 +38,69 @@ function Bookings({
         }
     }
 
+    async function editBooking(booking) {
+        const screeningOptions = screenings
+            .map(
+                (screening) =>
+                    `${screening.id}: ${screening.movie?.title} - ${screening.room?.name}`
+            )
+            .join("\n");
+
+        const newScreeningId = window.prompt(
+            `Screening ID:\n${screeningOptions}`,
+            booking.screening?.id
+        );
+
+        if (!newScreeningId) {
+            return;
+        }
+
+        const newCustomerName = window.prompt(
+            "Customer name:",
+            booking.customerName
+        );
+
+        if (!newCustomerName) {
+            return;
+        }
+
+        const newTicketCount = window.prompt(
+            "Ticket count:",
+            booking.ticketCount
+        );
+
+        if (!newTicketCount) {
+            return;
+        }
+
+        try {
+            await request(`/bookings/${booking.id}`, {
+                method: "PUT",
+                body: JSON.stringify({
+                    screeningId: Number(newScreeningId),
+                    customerName: newCustomerName,
+                    ticketCount: Number(newTicketCount)
+                })
+            });
+
+            await reload();
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+
+    async function deleteBooking(id) {
+        try {
+            await request(`/bookings/${id}`, {
+                method: "DELETE"
+            });
+
+            await reload();
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+
     return (
         <section>
             <h2>Bookings</h2>
@@ -135,6 +198,25 @@ function Bookings({
                             <small>
                                 Booking ID: {booking.id}
                             </small>
+                        </div>
+
+                        <div className="actions">
+                            <button
+                                onClick={() =>
+                                    editBooking(booking)
+                                }
+                            >
+                                Edit
+                            </button>
+
+                            <button
+                                className="danger"
+                                onClick={() =>
+                                    deleteBooking(booking.id)
+                                }
+                            >
+                                Delete
+                            </button>
                         </div>
                     </div>
                 ))}

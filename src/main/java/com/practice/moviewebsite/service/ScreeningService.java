@@ -1,6 +1,7 @@
 package com.practice.moviewebsite.service;
 
 import com.practice.moviewebsite.dto.ScreeningRequest;
+import com.practice.moviewebsite.exception.ResourceNotFoundException;
 import com.practice.moviewebsite.model.Movie;
 import com.practice.moviewebsite.model.Room;
 import com.practice.moviewebsite.model.Screening;
@@ -34,22 +35,18 @@ public class ScreeningService {
 
     public Screening getScreeningById(Long id) {
         return screeningRepository.findById(id)
-                .orElse(null);
+                .orElseThrow(() -> new ResourceNotFoundException("Screening", id));
     }
 
     public Screening addScreening(ScreeningRequest request) {
 
         Movie movie = movieRepository
                 .findById(request.getMovieId())
-                .orElse(null);
+                .orElseThrow(() -> new ResourceNotFoundException("Movie", request.getMovieId()));
 
         Room room = roomRepository
                 .findById(request.getRoomId())
-                .orElse(null);
-
-        if (movie == null || room == null) {
-            return null;
-        }
+                .orElseThrow(() -> new ResourceNotFoundException("Room", request.getRoomId()));
 
         Screening screening = new Screening(
                 movie,
@@ -58,5 +55,33 @@ public class ScreeningService {
         );
 
         return screeningRepository.save(screening);
+    }
+
+    public Screening updateScreening(Long id, ScreeningRequest request) {
+
+        Screening screening = screeningRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Screening", id));
+
+        Movie movie = movieRepository
+                .findById(request.getMovieId())
+                .orElseThrow(() -> new ResourceNotFoundException("Movie", request.getMovieId()));
+
+        Room room = roomRepository
+                .findById(request.getRoomId())
+                .orElseThrow(() -> new ResourceNotFoundException("Room", request.getRoomId()));
+
+        screening.setMovie(movie);
+        screening.setRoom(room);
+        screening.setStartTime(request.getStartTime().toLocalDate());
+
+        return screeningRepository.save(screening);
+    }
+
+    public Screening deleteScreening(Long id) {
+        Screening screening = screeningRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Screening", id));
+
+        screeningRepository.delete(screening);
+        return screening;
     }
 }
