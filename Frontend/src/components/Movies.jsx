@@ -3,6 +3,7 @@ import { request } from "../api/api";
 
 function Movies({ movies, reload }) {
     const [title, setTitle] = useState("");
+    const [rating, setRating] = useState("");
 
     async function addMovie(event) {
         event.preventDefault();
@@ -11,11 +12,13 @@ function Movies({ movies, reload }) {
             await request("/movies", {
                 method: "POST",
                 body: JSON.stringify({
-                    title: title
+                    title: title,
+                    rating: Number(rating)
                 })
             });
 
             setTitle("");
+            setRating("");
             await reload();
         } catch (error) {
             alert(error.message);
@@ -32,11 +35,21 @@ function Movies({ movies, reload }) {
             return;
         }
 
+        const newRating = window.prompt(
+            "New rating (0-10):",
+            movie.rating
+        );
+
+        if (!newRating) {
+            return;
+        }
+
         try {
             await request(`/movies/${movie.id}`, {
                 method: "PUT",
                 body: JSON.stringify({
-                    title: newTitle
+                    title: newTitle,
+                    rating: Number(newRating)
                 })
             });
 
@@ -73,6 +86,19 @@ function Movies({ movies, reload }) {
                     required
                 />
 
+                <input
+                    type="number"
+                    min="0"
+                    max="10"
+                    step="0.1"
+                    placeholder="Rating (0-10)"
+                    value={rating}
+                    onChange={(event) =>
+                        setRating(event.target.value)
+                    }
+                    required
+                />
+
                 <button type="submit">
                     Add movie
                 </button>
@@ -86,6 +112,7 @@ function Movies({ movies, reload }) {
                     >
                         <div>
                             <strong>{movie.title}</strong>
+                            <span>Rating: {movie.rating}</span>
                             <small>ID: {movie.id}</small>
                         </div>
 

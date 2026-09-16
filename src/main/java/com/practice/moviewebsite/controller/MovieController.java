@@ -39,7 +39,7 @@ public class MovieController {
 
     @PutMapping("/movies/{id}")
     public Movie changeMovie(@PathVariable Long id,@Valid @RequestBody Movie movie){
-        return movieService.changeMovieTitle(id, movie);
+        return movieService.updateMovie(id, movie);
     }
 
     @DeleteMapping("/movies/{id}")

@@ -28,7 +28,7 @@ public class MovieService {
         return movieRepository.save(movie);
     }
 
-    public Movie changeMovieTitle(Long id, Movie updatedMovie){
+    public Movie updateMovie(Long id, Movie updatedMovie){
         Movie movie = movieRepository.findById(id).orElse(null);
 
         if (movie == null){
@@ -36,6 +36,7 @@ public class MovieService {
         }
 
         movie.setTitle(updatedMovie.getTitle());
+        movie.setRating(updatedMovie.getRating());
         return movieRepository.save(movie);
     }
 
