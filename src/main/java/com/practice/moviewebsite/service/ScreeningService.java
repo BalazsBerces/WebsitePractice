@@ -51,7 +51,7 @@ public class ScreeningService {
         Screening screening = new Screening(
                 movie,
                 room,
-                request.getStartTime().toLocalDate()
+                request.getStartTime()
         );
 
         return screeningRepository.save(screening);
@@ -72,7 +72,7 @@ public class ScreeningService {
 
         screening.setMovie(movie);
         screening.setRoom(room);
-        screening.setStartTime(request.getStartTime().toLocalDate());
+        screening.setStartTime(request.getStartTime());
 
         return screeningRepository.save(screening);
     }

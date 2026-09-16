@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s http://localhost:8080/screenings)",
+      "Bash(curl -s -X POST http://localhost:8080/screenings -H \"Content-Type: application/json\" -d '{\"movieId\":17,\"roomId\":6,\"startTime\":\"2026-09-20T19:45:00\"}')"
+    ]
+  }
+}
