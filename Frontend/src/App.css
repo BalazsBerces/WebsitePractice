@@ -134,6 +134,32 @@ form button {
   color: #b52b2b;
 }
 
+.actions .primary {
+  border: none;
+  background: #222;
+  color: white;
+}
+
+.edit-panel {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 10px;
+  background: white;
+  padding: 18px;
+  margin-bottom: 0;
+  border: 1px solid #ddd;
+}
+
+.edit-panel input {
+  width: 100%;
+}
+
+.edit-error {
+  margin: 0;
+  color: #b52b2b;
+}
+
 .message {
   max-width: 1000px;
   margin: 20px auto 0;
