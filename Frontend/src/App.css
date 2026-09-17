@@ -126,10 +126,40 @@ form button {
   cursor: pointer;
   border: 1px solid #aaa;
   background: white;
+  color: #222;
 }
 
 .actions .danger {
   border-color: #b52b2b;
+  color: #b52b2b;
+}
+
+.actions .primary {
+  border: none;
+  background: #222;
+  color: white;
+}
+
+.edit-panel {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 10px;
+  background: white;
+  padding: 18px;
+  margin-top: -10px;
+  margin-bottom: 0;
+  border: 1px solid #ddd;
+}
+
+.edit-panel input {
+  width: 100%;
+  background: #f5f5f5;
+  color: #222;
+}
+
+.edit-error {
+  margin: 0;
   color: #b52b2b;
 }
 

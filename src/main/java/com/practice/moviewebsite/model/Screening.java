@@ -2,7 +2,7 @@ package com.practice.moviewebsite.model;
 
 import jakarta.persistence.*;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 public class Screening {
@@ -11,7 +11,7 @@ public class Screening {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private LocalDate startTime;
+    private LocalDateTime startTime;
 
     @ManyToOne
     private Movie movie;
@@ -21,7 +21,7 @@ public class Screening {
 
     protected Screening(){}
 
-    public  Screening(Movie movie, Room room, LocalDate startTime){
+    public  Screening(Movie movie, Room room, LocalDateTime startTime){
         this.movie = movie;
         this.room = room;
         this.startTime = startTime;
@@ -35,11 +35,11 @@ public class Screening {
         this.id = id;
     }
 
-    public LocalDate getStartTime() {
+    public LocalDateTime getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(LocalDate startTime) {
+    public void setStartTime(LocalDateTime startTime) {
         this.startTime = startTime;
     }
 
