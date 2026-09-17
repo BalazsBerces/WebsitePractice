@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { request } from "../api/api";
 
 function Screenings({
@@ -10,6 +10,7 @@ function Screenings({
     const [movieId, setMovieId] = useState("");
     const [roomId, setRoomId] = useState("");
     const [startTime, setStartTime] = useState("");
+    const [editDrafts, setEditDrafts] = useState({});
 
     async function addScreening(event) {
         event.preventDefault();
@@ -34,55 +35,65 @@ function Screenings({
         }
     }
 
-    async function editScreening(screening) {
-        const movieOptions = movies
-            .map((movie) => `${movie.id}: ${movie.title}`)
-            .join("\n");
+    function startEdit(screening) {
+        setEditDrafts((prev) => {
+            if (prev[screening.id]) {
+                const next = { ...prev };
+                delete next[screening.id];
+                return next;
+            }
 
-        const newMovieId = window.prompt(
-            `Movie ID:\n${movieOptions}`,
-            screening.movie?.id
-        );
+            return {
+                ...prev,
+                [screening.id]: {
+                    movieId: String(screening.movie?.id ?? ""),
+                    roomId: String(screening.room?.id ?? ""),
+                    startTime: screening.startTime
+                        ? screening.startTime.slice(0, 16)
+                        : "",
+                    error: ""
+                }
+            };
+        });
+    }
 
-        if (!newMovieId) {
-            return;
-        }
+    function updateDraft(screeningId, field, value) {
+        setEditDrafts((prev) => ({
+            ...prev,
+            [screeningId]: {
+                ...prev[screeningId],
+                [field]: value
+            }
+        }));
+    }
 
-        const roomOptions = rooms
-            .map((room) => `${room.id}: ${room.name}`)
-            .join("\n");
+    function cancelEdit(screeningId) {
+        setEditDrafts((prev) => {
+            const next = { ...prev };
+            delete next[screeningId];
+            return next;
+        });
+    }
 
-        const newRoomId = window.prompt(
-            `Room ID:\n${roomOptions}`,
-            screening.room?.id
-        );
+    async function saveEdit(event, screeningId) {
+        event.preventDefault();
 
-        if (!newRoomId) {
-            return;
-        }
-
-        const newStartTime = window.prompt(
-            "Start time (YYYY-MM-DDTHH:mm):",
-            screening.startTime
-        );
-
-        if (!newStartTime) {
-            return;
-        }
+        const draft = editDrafts[screeningId];
 
         try {
-            await request(`/screenings/${screening.id}`, {
+            await request(`/screenings/${screeningId}`, {
                 method: "PUT",
                 body: JSON.stringify({
-                    movieId: Number(newMovieId),
-                    roomId: Number(newRoomId),
-                    startTime: newStartTime
+                    movieId: Number(draft.movieId),
+                    roomId: Number(draft.roomId),
+                    startTime: draft.startTime
                 })
             });
 
+            cancelEdit(screeningId);
             await reload();
         } catch (error) {
-            alert(error.message);
+            updateDraft(screeningId, "error", error.message);
         }
     }
 
@@ -161,50 +172,137 @@ function Screenings({
 
             <div className="cards">
                 {screenings.map((screening) => (
-                    <div
-                        className="card"
-                        key={screening.id}
-                    >
-                        <div>
-                            <strong>
-                                {screening.movie?.title}
-                            </strong>
+                    <Fragment key={screening.id}>
+                        <div className="card">
+                            <div>
+                                <strong>
+                                    {screening.movie?.title}
+                                </strong>
 
-                            <span>
-                                Room: {screening.room?.name}
-                            </span>
+                                <span>
+                                    Room: {screening.room?.name}
+                                </span>
 
-                            <span>
-                                {screening.startTime?.replace(
-                                    "T",
-                                    " "
+                                <span>
+                                    {screening.startTime?.replace(
+                                        "T",
+                                        " "
+                                    )}
+                                </span>
+
+                                <small>
+                                    ID: {screening.id}
+                                </small>
+                            </div>
+
+                            <div className="actions">
+                                <button
+                                    onClick={() =>
+                                        startEdit(screening)
+                                    }
+                                >
+                                    Edit
+                                </button>
+
+                                <button
+                                    className="danger"
+                                    onClick={() =>
+                                        deleteScreening(screening.id)
+                                    }
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+
+                        {editDrafts[screening.id] && (
+                            <form
+                                className="edit-panel"
+                                onSubmit={(event) =>
+                                    saveEdit(event, screening.id)
+                                }
+                            >
+                                <select
+                                    value={editDrafts[screening.id].movieId}
+                                    onChange={(event) =>
+                                        updateDraft(
+                                            screening.id,
+                                            "movieId",
+                                            event.target.value
+                                        )
+                                    }
+                                    required
+                                >
+                                    {movies.map((movie) => (
+                                        <option
+                                            key={movie.id}
+                                            value={movie.id}
+                                        >
+                                            {movie.title}
+                                        </option>
+                                    ))}
+                                </select>
+
+                                <select
+                                    value={editDrafts[screening.id].roomId}
+                                    onChange={(event) =>
+                                        updateDraft(
+                                            screening.id,
+                                            "roomId",
+                                            event.target.value
+                                        )
+                                    }
+                                    required
+                                >
+                                    {rooms.map((room) => (
+                                        <option
+                                            key={room.id}
+                                            value={room.id}
+                                        >
+                                            {room.name}
+                                        </option>
+                                    ))}
+                                </select>
+
+                                <input
+                                    type="datetime-local"
+                                    value={editDrafts[screening.id].startTime}
+                                    onChange={(event) =>
+                                        updateDraft(
+                                            screening.id,
+                                            "startTime",
+                                            event.target.value
+                                        )
+                                    }
+                                    required
+                                />
+
+                                <div className="actions">
+                                    <button
+                                        type="submit"
+                                        className="primary"
+                                    >
+                                        Save
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            cancelEdit(screening.id)
+                                        }
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+
+                                {editDrafts[screening.id].error && (
+                                    <p className="edit-error">
+                                        {editDrafts[screening.id].error}
+                                    </p>
                                 )}
-                            </span>
-
-                            <small>
-                                ID: {screening.id}
-                            </small>
-                        </div>
-
-                        <div className="actions">
-                            <button
-                                onClick={() =>
-                                    editScreening(screening)
-                                }
-                            >
-                                Edit
-                            </button>
-
-                            <button
-                                className="danger"
-                                onClick={() =>
-                                    deleteScreening(screening.id)
-                                }
-                            >
-                                Delete
-                            </button>
-                        </div>
-                    </div>
+                            </form>
+                        )}
+                    </Fragment>
                 ))}
             </div>
         </section>

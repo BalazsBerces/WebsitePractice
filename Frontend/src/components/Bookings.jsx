@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { request } from "../api/api";
 
 function Bookings({
@@ -14,6 +14,8 @@ function Bookings({
 
     const [ticketCount, setTicketCount] =
         useState(1);
+
+    const [editDrafts, setEditDrafts] = useState({});
 
     async function addBooking(event) {
         event.preventDefault();
@@ -38,54 +40,63 @@ function Bookings({
         }
     }
 
-    async function editBooking(booking) {
-        const screeningOptions = screenings
-            .map(
-                (screening) =>
-                    `${screening.id}: ${screening.movie?.title} - ${screening.room?.name}`
-            )
-            .join("\n");
+    function startEdit(booking) {
+        setEditDrafts((prev) => {
+            if (prev[booking.id]) {
+                const next = { ...prev };
+                delete next[booking.id];
+                return next;
+            }
 
-        const newScreeningId = window.prompt(
-            `Screening ID:\n${screeningOptions}`,
-            booking.screening?.id
-        );
+            return {
+                ...prev,
+                [booking.id]: {
+                    screeningId: String(booking.screening?.id ?? ""),
+                    customerName: booking.customerName,
+                    ticketCount: String(booking.ticketCount),
+                    error: ""
+                }
+            };
+        });
+    }
 
-        if (!newScreeningId) {
-            return;
-        }
+    function updateDraft(bookingId, field, value) {
+        setEditDrafts((prev) => ({
+            ...prev,
+            [bookingId]: {
+                ...prev[bookingId],
+                [field]: value
+            }
+        }));
+    }
 
-        const newCustomerName = window.prompt(
-            "Customer name:",
-            booking.customerName
-        );
+    function cancelEdit(bookingId) {
+        setEditDrafts((prev) => {
+            const next = { ...prev };
+            delete next[bookingId];
+            return next;
+        });
+    }
 
-        if (!newCustomerName) {
-            return;
-        }
+    async function saveEdit(event, bookingId) {
+        event.preventDefault();
 
-        const newTicketCount = window.prompt(
-            "Ticket count:",
-            booking.ticketCount
-        );
-
-        if (!newTicketCount) {
-            return;
-        }
+        const draft = editDrafts[bookingId];
 
         try {
-            await request(`/bookings/${booking.id}`, {
+            await request(`/bookings/${bookingId}`, {
                 method: "PUT",
                 body: JSON.stringify({
-                    screeningId: Number(newScreeningId),
-                    customerName: newCustomerName,
-                    ticketCount: Number(newTicketCount)
+                    screeningId: Number(draft.screeningId),
+                    customerName: draft.customerName,
+                    ticketCount: Number(draft.ticketCount)
                 })
             });
 
+            cancelEdit(bookingId);
             await reload();
         } catch (error) {
-            alert(error.message);
+            updateDraft(bookingId, "error", error.message);
         }
     }
 
@@ -168,57 +179,146 @@ function Bookings({
 
             <div className="cards">
                 {bookings.map((booking) => (
-                    <div
-                        className="card"
-                        key={booking.id}
-                    >
-                        <div>
-                            <strong>
-                                {booking.customerName}
-                            </strong>
+                    <Fragment key={booking.id}>
+                        <div className="card">
+                            <div>
+                                <strong>
+                                    {booking.customerName}
+                                </strong>
 
-                            <span>
-                                {booking.ticketCount} ticket(s)
-                            </span>
+                                <span>
+                                    {booking.ticketCount} ticket(s)
+                                </span>
 
-                            <span>
-                                {
-                                    booking.screening
-                                        ?.movie?.title
-                                }
-                            </span>
+                                <span>
+                                    {
+                                        booking.screening
+                                            ?.movie?.title
+                                    }
+                                </span>
 
-                            <span>
-                                {
-                                    booking.screening
-                                        ?.room?.name
-                                }
-                            </span>
+                                <span>
+                                    {
+                                        booking.screening
+                                            ?.room?.name
+                                    }
+                                </span>
 
-                            <small>
-                                Booking ID: {booking.id}
-                            </small>
+                                <small>
+                                    Booking ID: {booking.id}
+                                </small>
+                            </div>
+
+                            <div className="actions">
+                                <button
+                                    onClick={() =>
+                                        startEdit(booking)
+                                    }
+                                >
+                                    Edit
+                                </button>
+
+                                <button
+                                    className="danger"
+                                    onClick={() =>
+                                        deleteBooking(booking.id)
+                                    }
+                                >
+                                    Delete
+                                </button>
+                            </div>
                         </div>
 
-                        <div className="actions">
-                            <button
-                                onClick={() =>
-                                    editBooking(booking)
+                        {editDrafts[booking.id] && (
+                            <form
+                                className="edit-panel"
+                                onSubmit={(event) =>
+                                    saveEdit(event, booking.id)
                                 }
                             >
-                                Edit
-                            </button>
+                                <select
+                                    value={editDrafts[booking.id].screeningId}
+                                    onChange={(event) =>
+                                        updateDraft(
+                                            booking.id,
+                                            "screeningId",
+                                            event.target.value
+                                        )
+                                    }
+                                    required
+                                >
+                                    {screenings.map((screening) => (
+                                        <option
+                                            key={screening.id}
+                                            value={screening.id}
+                                        >
+                                            {screening.movie?.title}
+                                            {" - "}
+                                            {screening.room?.name}
+                                            {" - "}
+                                            {screening.startTime?.replace(
+                                                "T",
+                                                " "
+                                            )}
+                                        </option>
+                                    ))}
+                                </select>
 
-                            <button
-                                className="danger"
-                                onClick={() =>
-                                    deleteBooking(booking.id)
-                                }
-                            >
-                                Delete
-                            </button>
-                        </div>
-                    </div>
+                                <input
+                                    type="text"
+                                    placeholder="Customer name"
+                                    value={editDrafts[booking.id].customerName}
+                                    onChange={(event) =>
+                                        updateDraft(
+                                            booking.id,
+                                            "customerName",
+                                            event.target.value
+                                        )
+                                    }
+                                    required
+                                />
+
+                                <input
+                                    type="number"
+                                    min="1"
+                                    placeholder="Tickets"
+                                    value={editDrafts[booking.id].ticketCount}
+                                    onChange={(event) =>
+                                        updateDraft(
+                                            booking.id,
+                                            "ticketCount",
+                                            event.target.value
+                                        )
+                                    }
+                                    required
+                                />
+
+                                <div className="actions">
+                                    <button
+                                        type="submit"
+                                        className="primary"
+                                    >
+                                        Save
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            cancelEdit(booking.id)
+                                        }
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+
+                                {editDrafts[booking.id].error && (
+                                    <p className="edit-error">
+                                        {editDrafts[booking.id].error}
+                                    </p>
+                                )}
+                            </form>
+                        )}
+                    </Fragment>
                 ))}
             </div>
         </section>

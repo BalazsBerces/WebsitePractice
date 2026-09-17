@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { request } from "../api/api";
 
 function Rooms({ rooms, reload }) {
     const [name, setName] = useState("");
     const [capacity, setCapacity] = useState("");
+    const [editDrafts, setEditDrafts] = useState({});
 
     async function addRoom(event) {
         event.preventDefault();
@@ -26,37 +27,61 @@ function Rooms({ rooms, reload }) {
         }
     }
 
-    async function editRoom(room) {
-        const newName = window.prompt(
-            "Room name:",
-            room.name
-        );
+    function startEdit(room) {
+        setEditDrafts((prev) => {
+            if (prev[room.id]) {
+                const next = { ...prev };
+                delete next[room.id];
+                return next;
+            }
 
-        if (!newName) {
-            return;
-        }
+            return {
+                ...prev,
+                [room.id]: {
+                    name: room.name,
+                    capacity: String(room.capacity),
+                    error: ""
+                }
+            };
+        });
+    }
 
-        const newCapacity = window.prompt(
-            "Room capacity:",
-            room.capacity
-        );
+    function updateDraft(roomId, field, value) {
+        setEditDrafts((prev) => ({
+            ...prev,
+            [roomId]: {
+                ...prev[roomId],
+                [field]: value
+            }
+        }));
+    }
 
-        if (!newCapacity) {
-            return;
-        }
+    function cancelEdit(roomId) {
+        setEditDrafts((prev) => {
+            const next = { ...prev };
+            delete next[roomId];
+            return next;
+        });
+    }
+
+    async function saveEdit(event, roomId) {
+        event.preventDefault();
+
+        const draft = editDrafts[roomId];
 
         try {
-            await request(`/rooms/${room.id}`, {
+            await request(`/rooms/${roomId}`, {
                 method: "PUT",
                 body: JSON.stringify({
-                    name: newName,
-                    capacity: Number(newCapacity)
+                    name: draft.name,
+                    capacity: Number(draft.capacity)
                 })
             });
 
+            cancelEdit(roomId);
             await reload();
         } catch (error) {
-            alert(error.message);
+            updateDraft(roomId, "error", error.message);
         }
     }
 
@@ -105,41 +130,102 @@ function Rooms({ rooms, reload }) {
 
             <div className="cards">
                 {rooms.map((room) => (
-                    <div
-                        className="card"
-                        key={room.id}
-                    >
-                        <div>
-                            <strong>{room.name}</strong>
+                    <Fragment key={room.id}>
+                        <div className="card">
+                            <div>
+                                <strong>{room.name}</strong>
 
-                            <span>
-                                {room.capacity} seats
-                            </span>
+                                <span>
+                                    {room.capacity} seats
+                                </span>
 
-                            <small>
-                                ID: {room.id}
-                            </small>
+                                <small>
+                                    ID: {room.id}
+                                </small>
+                            </div>
+
+                            <div className="actions">
+                                <button
+                                    onClick={() =>
+                                        startEdit(room)
+                                    }
+                                >
+                                    Edit
+                                </button>
+
+                                <button
+                                    className="danger"
+                                    onClick={() =>
+                                        deleteRoom(room.id)
+                                    }
+                                >
+                                    Delete
+                                </button>
+                            </div>
                         </div>
 
-                        <div className="actions">
-                            <button
-                                onClick={() =>
-                                    editRoom(room)
+                        {editDrafts[room.id] && (
+                            <form
+                                className="edit-panel"
+                                onSubmit={(event) =>
+                                    saveEdit(event, room.id)
                                 }
                             >
-                                Edit
-                            </button>
+                                <input
+                                    type="text"
+                                    placeholder="Room name"
+                                    value={editDrafts[room.id].name}
+                                    onChange={(event) =>
+                                        updateDraft(
+                                            room.id,
+                                            "name",
+                                            event.target.value
+                                        )
+                                    }
+                                    required
+                                />
 
-                            <button
-                                className="danger"
-                                onClick={() =>
-                                    deleteRoom(room.id)
-                                }
-                            >
-                                Delete
-                            </button>
-                        </div>
-                    </div>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    placeholder="Capacity"
+                                    value={editDrafts[room.id].capacity}
+                                    onChange={(event) =>
+                                        updateDraft(
+                                            room.id,
+                                            "capacity",
+                                            event.target.value
+                                        )
+                                    }
+                                    required
+                                />
+
+                                <div className="actions">
+                                    <button
+                                        type="submit"
+                                        className="primary"
+                                    >
+                                        Save
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            cancelEdit(room.id)
+                                        }
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+
+                                {editDrafts[room.id].error && (
+                                    <p className="edit-error">
+                                        {editDrafts[room.id].error}
+                                    </p>
+                                )}
+                            </form>
+                        )}
+                    </Fragment>
                 ))}
             </div>
         </section>

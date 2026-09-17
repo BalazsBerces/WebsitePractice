@@ -152,7 +152,8 @@ form button {
   border: 1px solid #ddd;
 }
 
-.edit-panel input {
+.edit-panel input,
+.edit-panel select {
   width: 100%;
   background: #f5f5f5;
   color: #222;
