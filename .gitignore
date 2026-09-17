@@ -18,3 +18,7 @@ Thumbs.db
 
 # Környezeti változók / titkok
 .env
+
+# Claude Code
+CLAUDE.md
+

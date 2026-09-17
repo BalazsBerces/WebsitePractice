@@ -33,4 +33,17 @@ public class ScreeningController {
     ) {
         return screeningService.addScreening(request);
     }
+
+    @PutMapping("/{id}")
+    public Screening updateScreening(
+            @PathVariable Long id,
+            @RequestBody ScreeningRequest request
+    ) {
+        return screeningService.updateScreening(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    public Screening deleteScreening(@PathVariable Long id) {
+        return screeningService.deleteScreening(id);
+    }
 }

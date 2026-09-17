@@ -1,6 +1,8 @@
 package com.practice.moviewebsite.service;
 
 import com.practice.moviewebsite.dto.BookingRequest;
+import com.practice.moviewebsite.exception.NotEnoughSeatsException;
+import com.practice.moviewebsite.exception.ResourceNotFoundException;
 import com.practice.moviewebsite.model.Booking;
 import com.practice.moviewebsite.model.Screening;
 import com.practice.moviewebsite.repository.BookingRepository;
@@ -31,11 +33,8 @@ public class BookingService {
 
         Screening screening = screeningRepository
                 .findById(request.getScreeningId())
-                .orElse(null);
+                .orElseThrow(() -> new ResourceNotFoundException(("Screening"), request.getScreeningId()));
 
-        if (screening == null) {
-            return null;
-        }
 
         int capacity = screening.getRoom().getCapacity();
 
@@ -49,7 +48,7 @@ public class BookingService {
         }
 
         if (alreadyBooked + request.getTicketCount() > capacity) {
-            return null;
+            throw new NotEnoughSeatsException(request.getTicketCount(), capacity - alreadyBooked);
         }
 
         Booking booking = new Booking(
@@ -59,5 +58,46 @@ public class BookingService {
         );
 
         return bookingRepository.save(booking);
+    }
+
+    public Booking updateBooking(Long id, BookingRequest request) {
+
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", id));
+
+        Screening screening = screeningRepository
+                .findById(request.getScreeningId())
+                .orElseThrow(() -> new ResourceNotFoundException("Screening", request.getScreeningId()));
+
+        int capacity = screening.getRoom().getCapacity();
+
+        List<Booking> bookings =
+                bookingRepository.findByScreeningId(screening.getId());
+
+        int alreadyBooked = 0;
+
+        for (Booking existing : bookings) {
+            if (!existing.getId().equals(id)) {
+                alreadyBooked += existing.getTicketCount();
+            }
+        }
+
+        if (alreadyBooked + request.getTicketCount() > capacity) {
+            throw new NotEnoughSeatsException(request.getTicketCount(), capacity - alreadyBooked);
+        }
+
+        booking.setCustomerName(request.getCustomerName());
+        booking.setScreening(screening);
+        booking.setTicketCount(request.getTicketCount());
+
+        return bookingRepository.save(booking);
+    }
+
+    public Booking deleteBooking(Long id) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", id));
+
+        bookingRepository.delete(booking);
+        return booking;
     }
 }

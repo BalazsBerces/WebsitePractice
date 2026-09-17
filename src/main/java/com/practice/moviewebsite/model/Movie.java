@@ -4,6 +4,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 
 @Entity
@@ -16,10 +18,15 @@ public class Movie {
     @NotBlank
     private String title;
 
+    @DecimalMin("0.0")
+    @DecimalMax("10.0")
+    private float rating;
+
     protected Movie(){}
 
-    public Movie(String title){
+    public Movie(String title, float rating){
         this.title = title;
+        this.rating = rating;
     }
 
     public Long getId() {
@@ -36,5 +43,13 @@ public class Movie {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public float getRating() {
+        return rating;
+    }
+
+    public void setRating(float rating) {
+        this.rating = rating;
     }
 }
