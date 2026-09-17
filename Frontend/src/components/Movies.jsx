@@ -27,14 +27,22 @@ function Movies({ movies, reload }) {
     }
 
     function startEdit(movie) {
-        setEditDrafts((prev) => ({
-            ...prev,
-            [movie.id]: {
-                title: movie.title,
-                rating: String(movie.rating),
-                error: ""
+        setEditDrafts((prev) => {
+            if (prev[movie.id]) {
+                const next = { ...prev };
+                delete next[movie.id];
+                return next;
             }
-        }));
+
+            return {
+                ...prev,
+                [movie.id]: {
+                    title: movie.title,
+                    rating: String(movie.rating),
+                    error: ""
+                }
+            };
+        });
     }
 
     function updateDraft(movieId, field, value) {
