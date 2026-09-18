@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(npm run *)",
-      "Bash(netstat -ano)",
-      "Bash(powershell -NoProfile -Command \"Stop-Process -Id 23576,17284,10788 -Force -ErrorAction SilentlyContinue\")"
-    ]
-  }
-}
