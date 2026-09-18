@@ -18,11 +18,7 @@ Thumbs.db
 
 # Környezeti változók / titkok
 .env
-<<<<<<< HEAD
-.CLAUDE.md
-=======
 
 # Claude Code
 CLAUDE.md
 
->>>>>>> 11fb45d45336b5ae5e00db58c54a150be1aef17d
